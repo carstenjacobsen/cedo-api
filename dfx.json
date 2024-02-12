@@ -1,0 +1,29 @@
+{
+  "canisters": {
+    "api": {
+      "type": "custom",
+      "package": "api",
+      "candid": "src/api/api.did",
+      "wasm": "target/wasm32-unknown-unknown/release/api.wasm",
+      "build": "src/api/build.sh",
+      "metadata": [
+        {
+          "name": "candid:service"
+        }
+      ]
+    }
+  },
+  "defaults": {
+    "build": {
+      "packtool": "",
+      "args": ""
+    }
+  },
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:4949"
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}

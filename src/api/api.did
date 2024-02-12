@@ -1,0 +1,141 @@
+type satoshi = nat64;
+
+type millisatoshi_per_vbyte = nat64;
+
+type bitcoin_address = text;
+
+type transaction_id = text;
+
+type block_hash = blob;
+
+type network = variant {
+    regtest;
+    testnet;
+    mainnet;
+};
+
+type outpoint = record {
+  txid : blob;
+  vout : nat32
+};
+
+type utxo = record {
+  outpoint: outpoint;
+  value: satoshi;
+  height: nat32;
+};
+
+type get_utxos_response = record {
+  utxos: vec utxo;
+  tip_block_hash: block_hash;
+  tip_height: nat32;
+  next_page: opt blob;
+};
+
+type RawHttpRequest = record {
+    method : text;
+    url : text;
+    headers : vec record { text; text; };
+    body : blob;
+};
+
+type RawHttpResponse = record {
+    status_code : nat16;
+    headers : vec record { text; text; };
+    body : blob;
+    upgrade : opt bool;
+};
+
+type Order = record {
+    order_id: text;
+    order_type: text;
+    vendor_id: text;
+    vendor_order_id: text;
+    order_amount: float32;
+    order_amount_currency: text;
+    tag_id: text;
+};
+
+type Vendor = record {
+  vendor_id: text;
+  name: text;
+  logo: text;
+  tags: vec text;
+  loyalty: vec Loyalty;
+  coupon: vec Coupon;
+  ticket: vec Ticket;
+};
+
+type Loyalty = record {
+    id: text;
+};
+
+type Coupon = record {
+    id: text;
+};
+
+type Ticket = record {
+    id: text;
+};
+
+type VendorMetadata = record {
+    vendor_id: text;
+    name: text;
+    logo: text;
+};
+
+type Deal = record {
+  deal_id: text;
+  deal_type: text;
+  headline: text;
+  description: text;
+  threshold: float32;
+  discount: float32;
+  discount_type: text;
+  image: text;
+  vendor_metadata: VendorMetadata;
+};
+
+type User = record {
+  user_id: text;
+  deals: vec text;
+};
+
+
+
+service : (network) -> {
+    "get_p2pkh_address": () -> (bitcoin_address);
+    "get_balance": (address: bitcoin_address) -> (satoshi);
+    "get_utxos": (bitcoin_address) -> (get_utxos_response);
+    "get_current_fee_percentiles": () -> (vec millisatoshi_per_vbyte);
+
+    "send": (record {
+      destination_address: bitcoin_address;
+      amount_in_satoshi: satoshi;
+    }) -> (transaction_id);
+
+    http_request : (RawHttpRequest) -> (RawHttpResponse) query;
+    http_request_update : (RawHttpRequest) -> (RawHttpResponse);
+
+    create_vendor: (Vendor) -> ();
+    remove_vendor: (text) -> ();
+    get_vendor: (text) -> (opt Vendor) query;
+    get_vendors: () -> (vec Vendor) query;
+
+    create_order: (Order) -> ();
+    complete_order: (text) -> (text);
+    get_orders: () -> (vec Order) query;
+    get_order: (text) -> (opt Order) query;
+
+    create_deal: (Deal) -> ();
+    remove_deal: (text) -> ();
+    get_deals: () -> (vec Deal) query;
+    get_deal: (text) -> (opt Deal) query;
+
+    create_user: (User) -> ();
+    remove_user: (text) -> ();
+    get_users: () -> (vec User) query;
+    get_user: (text) -> (opt User) query;
+
+    get_relevant_deals: (text, text) -> (Deal) query;
+}
